@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "nissan_gtr"
+version = "0.1.0"
+description = "FastAPI registration helper"
+authors = ["Cole Gensheimer <contact@colemg.dev>"]
+packages = [
+    { include = "nissan_gtr", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.68.0"
+uvicorn = "^0.15.0"
+pyyaml = "^6.0"
+requests = "^2.32.3"
+bs4 = "^0.0.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
