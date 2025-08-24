@@ -1,3 +1,9 @@
 
 config.yaml
 *.txt
+
+# Virtual environments
+.venv/
+venv/
+gtrvenv/
+src/nissan_gtr/gtrvenv/

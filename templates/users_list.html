@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GT Registration Helper - Users</title>
+    <link href="/static/css/styles.css" rel="stylesheet">
+    <style>
+        .warning-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+        .warning-box h4 {
+            margin-top: 0;
+            color: #b45309;
+        }
+        .user-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .user-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+        }
+        .user-card h3 {
+            margin-top: 0;
+            color: #B3A369;
+        }
+        .user-card .btn {
+            width: 100%;
+            margin-top: 10px;
+        }
+        .create-user-form {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border: 1px solid #ddd;
+            max-width: 500px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        .form-group input:focus {
+            outline: none;
+            border-color: #B3A369;
+            box-shadow: 0 0 5px rgba(179, 163, 105, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🏎️ GT Registration Helper</h1>
+            <p>Georgia Tech Course Registration Monitoring</p>
+        </header>
+
+        {% if users %}
+        <section>
+            <h2>Existing Users</h2>
+            <div class="user-list">
+                {% for user in users %}
+                <div class="user-card">
+                    <h3>{{ user.name }}</h3>
+                    <p><strong>UUID:</strong> {{ user.uuid[:8] }}...</p>
+                    <a href="/dashboard/{{ user.uuid }}" class="btn btn-primary">View Dashboard</a>
+                </div>
+                {% endfor %}
+            </div>
+        </section>
+        {% endif %}
+
+        <section>
+            <h2>Create New User</h2>
+            
+            <div class="warning-box">
+                <h4>⚠️ Security Warning</h4>
+                <p><strong>DO NOT use a password you use anywhere else!</strong></p>
+                <p>This is not a secure application. Passwords are stored in plain text and are only used as a basic access layer. Use a simple, unique password that you don't use for any other accounts.</p>
+            </div>
+
+            <form class="create-user-form" action="/dashboard/create-user" method="post">
+                <div class="form-group">
+                    <label for="name">Name:</label>
+                    <input type="text" id="name" name="name" required placeholder="Enter your name">
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required placeholder="Enter a simple password">
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Create User Account</button>
+            </form>
+        </section>
+    </div>
+</body>
+</html>

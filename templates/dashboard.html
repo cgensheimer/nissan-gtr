@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ user.name }}'s Course Dashboard - GT Registration Helper</title>
+    <link href="{{ url_for('static', path='/css/styles.css') }}" rel="stylesheet">
+    <meta http-equiv="refresh" content="30">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <h1>🚗 Georgia Tech Registration Helper</h1>
+                    <h2>Dashboard for {{ user.name }}</h2>
+                    <p class="user-info">
+                        UUID: <code>{{ user_uuid }}</code> | 
+                        Monitoring {{ courses|length }} course(s) |
+                        <span class="auto-refresh">Auto-refresh: 30s</span>
+                    </p>
+                </div>
+                <div>
+                    <a href="/dashboard" class="btn btn-secondary" style="text-decoration: none; padding: 10px 15px; background: #6c757d; color: white; border-radius: 4px;">← All Users</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="courses-grid">
+            {% for course in courses %}
+            <div class="course-card {% if course.is_open %}open{% elif course.waitlist_available %}waitlist{% else %}closed{% endif %}">
+                <div class="course-header">
+                    <h3>{{ course.name }}</h3>
+                    <span class="crn">CRN: {{ course.crn }}</span>
+                </div>
+                
+                <div class="course-status">
+                    {% if course.is_open %}
+                        <div class="status-badge open">🟢 OPEN</div>
+                        <div class="seats-info">
+                            <strong>{{ course.seats_available }}</strong> of {{ course.total_seats }} seats available
+                        </div>
+                    {% elif course.waitlist_available %}
+                        <div class="status-badge waitlist">🟡 WAITLIST</div>
+                        <div class="seats-info">
+                            Course full - <strong>{{ course.waitlist_spots }}</strong> of {{ course.total_waitlist }} waitlist spots
+                        </div>
+                    {% else %}
+                        <div class="status-badge closed">🔴 CLOSED</div>
+                        <div class="seats-info">
+                            Course and waitlist full
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="course-details">
+                    <div class="detail-row">
+                        <span class="label">Regular Seats:</span>
+                        <span class="value">{{ course.seats_available }}/{{ course.total_seats }}</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="label">Waitlist:</span>
+                        <span class="value">{{ course.waitlist_spots }}/{{ course.total_waitlist }}</span>
+                    </div>
+                </div>
+
+                <div class="course-actions">
+                    <a href="{{ course.url }}" target="_blank" class="oscar-link">
+                        View on OSCAR
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% if not courses %}
+        <div class="no-courses">
+            <p>No courses configured for this user.</p>
+        </div>
+        {% endif %}
+
+        <section class="course-management-section" style="margin-top: 30px; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); border: 1px solid #ddd;">
+            <h3 style="margin-top: 0; color: #B3A369;">Course Management</h3>
+            
+            <div style="margin-bottom: 25px;">
+                <h4 style="color: #333; margin-bottom: 10px;">Add New Course</h4>
+                <form action="/dashboard/{{ user_uuid }}/add-course" method="post" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div>
+                        <label for="add-crn" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Course CRN:</label>
+                        <input type="text" id="add-crn" name="crn" required placeholder="e.g., 12345" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                    </div>
+                    <div>
+                        <label for="add-password" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Your Password:</label>
+                        <input type="password" id="add-password" name="password" required placeholder="Enter your password" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="padding: 10px 20px;">Add Course</button>
+                </form>
+            </div>
+
+            <div>
+                <h4 style="color: #333; margin-bottom: 10px;">Remove Course</h4>
+                <form action="/dashboard/{{ user_uuid }}/remove-course" method="post" style="display: grid; grid-template-columns: 1fr 1fr auto; gap: 15px; align-items: end;">
+                    <div>
+                        <label for="remove-crn" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Course CRN:</label>
+                        <select id="remove-crn" name="crn" required 
+                                style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                            <option value="">Select course to remove...</option>
+                            {% for course in courses %}
+                            <option value="{{ course.crn }}">{{ course.crn }} - {{ course.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div>
+                        <label for="remove-password" style="display: block; margin-bottom: 5px; font-weight: bold; color: #333;">Your Password:</label>
+                        <input type="password" id="remove-password" name="password" required placeholder="Enter your password" 
+                               style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px;">
+                    </div>
+                    <button type="submit" class="btn" onclick="return confirm('Are you sure you want to remove this course?')"
+                            style="padding: 10px 20px; background: #dc3545; color: white; border: none; border-radius: 4px; cursor: pointer;">Remove Course</button>
+                </form>
+            </div>
+            
+            <p style="margin-top: 15px; color: #666; font-size: 14px;">
+                💡 <strong>Tip:</strong> You can find course CRNs on <a href="https://oscar.gatech.edu" target="_blank" style="color: #B3A369;">OSCAR</a>
+            </p>
+        </section>
+
+        <footer>
+            <p>Last updated: <span id="last-updated"></span></p>
+            <p>Notifications via NTFY app (using topic): <code>{{ user.ntfy_topic }}</code></p>
+        </footer>
+    </div>
+
+    <script>
+        // Update last updated time
+        document.getElementById('last-updated').textContent = new Date().toLocaleString();
+        
+        // Add countdown for auto-refresh
+        let countdown = 30;
+        const refreshSpan = document.querySelector('.auto-refresh');
+        
+        setInterval(() => {
+            countdown--;
+            refreshSpan.textContent = `Auto-refresh: ${countdown}s`;
+            if (countdown <= 0) {
+                countdown = 30;
+            }
+        }, 1000);
+    </script>
+</body>
+</html>
