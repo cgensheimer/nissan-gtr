@@ -9,7 +9,6 @@ class Course:
     def __init__(self, crn: str, term: str):
         self.crn = crn
         self.term = term
-        self.url = f"https://oscar.gatech.edu/bprod/bwckschd.p_disp_detail_sched?term_in={self.term}&crn_in={self.crn}"
         self.name = "Unknown"
         self.session = None
 
@@ -25,39 +24,29 @@ class Course:
 
     async def refresh_course_data(self):
         session = await self.get_session()
+        url = f"https://registration.banner.gatech.edu/StudentRegistrationSsb/ssb/searchResults/getClassDetails?term={self.term}&courseReferenceNumber={self.crn}"
         try:
-            async with session.get(self.url) as response:
+            async with session.get(url) as response:
                 content = await response.text()
                 soup = BeautifulSoup(content, "html.parser")
-                headers = soup.find_all("th", class_="ddlabel")
-                self.name = headers[0].getText() if headers else "Unknown"
+                title = soup.find("span", id="courseTitle")
+                number = soup.find("span", id="courseNumber")
+                subject = soup.find("span", id="subject")
+                self.name = subject.getText() + " " + number.getText() + " - " + title.getText() if title else "Unknown"
                 logger.info(f"Refreshed data for course: {self.name}")
         except Exception as e:
             logger.error(f"Error refreshing course data for {self.crn}: {e}")
 
     async def get_registration_info(self):
         session = await self.get_session()
+        url = f"https://registration.banner.gatech.edu/StudentRegistrationSsb/ssb/searchResults/getEnrollmentInfo?term={self.term}&courseReferenceNumber={self.crn}"
         try:
-            async with session.get(self.url) as response:
+            async with session.get(url) as response:
                 content = await response.text()
                 soup = BeautifulSoup(content, "html.parser")
-                table = soup.find("caption", string="Registration Availability")
-
-                if not table:
-                    logger.warning(
-                        f"Registration information not found for course: {self.name}"
-                    )
-                    return {
-                        "seats": 0,
-                        "taken": 0,
-                        "vacant": 0,
-                        "waitlist": {"seats": 0, "taken": 0, "vacant": 0},
-                    }
-
-                table = table.find_parent("table")
                 data = [
                     int(info.getText())
-                    for info in table.findAll("td", class_="dddefault")
+                    for info in soup.find_all("span", dir="ltr")
                 ]
 
                 if len(data) < 6:
@@ -70,6 +59,9 @@ class Course:
                         "vacant": 0,
                         "waitlist": {"seats": 0, "taken": 0, "vacant": 0},
                     }
+
+                # banner returns actual before max, swap to match
+                data[0], data[1] = data[1], data[0]
 
                 waitlist_data = {"seats": data[3], "taken": data[4], "vacant": data[5]}
                 load = {
